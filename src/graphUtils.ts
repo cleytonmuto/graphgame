@@ -37,7 +37,7 @@ function buildAdjacency(edges: Edge[]): Map<number, number[]> {
  */
 export function findEulerianPath(
   adjacency: Map<number, number[]>,
-  edgeCount: number
+  _edgeCount: number
 ): number[] {
   const degrees = new Map<number, number>();
   for (const [v, neighbors] of adjacency) {

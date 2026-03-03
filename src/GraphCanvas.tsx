@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import type { Graph, Vertex } from './types';
+import type { Graph } from './types';
 
 interface GraphCanvasProps {
   graph: Graph;
@@ -59,7 +59,6 @@ export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanv
 
   const totalEdges = edges.length;
   const traversedEdges = path.length > 0 ? path.length - 1 : 0;
-  const allEdgesUsed = traversedEdges === totalEdges;
 
   return (
     <div className="graph-canvas-container">
@@ -147,7 +146,6 @@ export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanv
         })}
 
         {vertices.map((vertex) => {
-          const isInPath = path.includes(vertex.id);
           const isLast = path[path.length - 1] === vertex.id;
           const clickable = canClick(vertex.id);
 
