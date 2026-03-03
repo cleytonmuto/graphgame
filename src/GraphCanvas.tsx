@@ -143,7 +143,7 @@ export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanv
           );
         })}
       </svg>
-      <p className="graph-hint">Click vertices in sequence to complete the Eulerian path</p>
+      <p className="graph-hint">Click vertices in sequence to complete the graph</p>
     </div>
   );
 }

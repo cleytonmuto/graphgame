@@ -57,7 +57,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Eulerian Path</h1>
+        <h1>Graph Game</h1>
         <p className="subtitle">Traverse every edge exactly once</p>
       </header>
 
