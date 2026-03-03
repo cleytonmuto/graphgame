@@ -4,15 +4,11 @@ import { generateEulerianGraph } from './graphUtils';
 import './App.css';
 
 function getLevelConfig(level: number): { vertices: number; edges: number } {
-  const baseVertices = 3;
-  const baseEdges = 3;
-  const vertices = Math.min(baseVertices + level, 10);
+  const baseVertices = 4;
+  const vertices = Math.min(baseVertices + level, 14);
   const minEdges = vertices - 1;
-  const maxEdges = Math.floor((vertices * (vertices - 1)) / 2) + Math.floor(vertices / 2);
-  const edges = Math.min(
-    baseEdges + level * 2,
-    maxEdges
-  );
+  const maxEdges = Math.floor((vertices * (vertices - 1)) / 2);
+  const edges = Math.min(minEdges + level, maxEdges);
   return {
     vertices,
     edges: Math.max(edges, minEdges),

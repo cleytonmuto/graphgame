@@ -1,8 +1,8 @@
 import type { Graph, Vertex, Edge } from './types';
 
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 400;
-const PADDING = 80;
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 810;
+const PADDING = 50;
 
 function placeVerticesOnCircle(n: number): { x: number; y: number }[] {
   const cx = CANVAS_WIDTH / 2;
@@ -81,8 +81,9 @@ export function findEulerianPath(
 }
 
 /**
- * Generate a connected graph that is guaranteed to have an Eulerian path.
- * Uses construction: base path through all vertices, then add edge pairs.
+ * Generate a connected simple graph (at most one edge per pair) with an Eulerian path.
+ * Uses construction: base path through all vertices, then add single edges
+ * (always between one odd- and one even-degree vertex) to maintain 0 or 2 odd total.
  */
 export function generateEulerianGraph(
   vertexCount: number,
@@ -101,48 +102,60 @@ export function generateEulerianGraph(
 
   const edges: Edge[] = [];
   const rand = seed !== undefined ? seededRandom(seed) : Math.random;
+  const edgeSet = new Set<string>();
 
   const minEdges = vertexCount - 1;
   const maxEdges = Math.floor((vertexCount * (vertexCount - 1)) / 2);
-  let desiredEdges = Math.max(
+  const desiredEdges = Math.max(
     minEdges,
     Math.min(targetEdgeCount, maxEdges)
   );
 
   for (let i = 0; i < vertexCount - 1; i++) {
     edges.push({ u: i, v: i + 1 });
+    edgeSet.add(i < i + 1 ? `${i}-${i + 1}` : `${i + 1}-${i}`);
   }
 
-  let extraEdges = desiredEdges - (vertexCount - 1);
-  extraEdges = Math.max(0, extraEdges);
+  const hasEdge = (a: number, b: number) =>
+    edgeSet.has(a < b ? `${a}-${b}` : `${b}-${a}`);
 
-  const edgeCounts = new Map<string, number>();
-  for (const e of edges) {
-    const key = e.u < e.v ? `${e.u}-${e.v}` : `${e.v}-${e.u}`;
-    edgeCounts.set(key, (edgeCounts.get(key) ?? 0) + 1);
-  }
-
-  const MAX_EDGES_PER_PAIR = 3;
-
-  const addEdgePair = (a: number, b: number): boolean => {
-    if (a === b) return false;
-    const key = a < b ? `${a}-${b}` : `${b}-${a}`;
-    const current = edgeCounts.get(key) ?? 0;
-    if (current >= MAX_EDGES_PER_PAIR - 1) return false;
-    edges.push({ u: a, v: b }, { u: a, v: b });
-    edgeCounts.set(key, current + 2);
+  const addEdge = (a: number, b: number): boolean => {
+    if (a === b || hasEdge(a, b)) return false;
+    edges.push({ u: a, v: b });
+    edgeSet.add(a < b ? `${a}-${b}` : `${b}-${a}`);
     return true;
   };
 
-  let added = 0;
-  const maxAttempts = extraEdges * 15;
+  const getOddVertices = (): Set<number> => {
+    const degrees = new Map<number, number>();
+    for (const { u, v } of edges) {
+      degrees.set(u, (degrees.get(u) ?? 0) + 1);
+      degrees.set(v, (degrees.get(v) ?? 0) + 1);
+    }
+    const odd = new Set<number>();
+    for (const [v, d] of degrees) {
+      if (d % 2 === 1) odd.add(v);
+    }
+    return odd;
+  };
+
+  let extraEdges = desiredEdges - (vertexCount - 1);
+  const maxAttempts = extraEdges * 25;
   let attempts = 0;
-  while (added < extraEdges && attempts < maxAttempts) {
+
+  while (extraEdges > 0 && attempts < maxAttempts) {
     attempts++;
-    const a = Math.floor(rand() * vertexCount);
-    const b = Math.floor(rand() * vertexCount);
-    if (a === b) continue;
-    if (addEdgePair(a, b)) added += 2;
+    const odd = getOddVertices();
+    const even = new Set<number>();
+    for (let i = 0; i < vertexCount; i++) {
+      if (!odd.has(i)) even.add(i);
+    }
+    const oddList = [...odd];
+    const evenList = [...even];
+    if (oddList.length === 0 || evenList.length === 0) break;
+    const u = oddList[Math.floor(rand() * oddList.length)];
+    const v = evenList[Math.floor(rand() * evenList.length)];
+    if (addEdge(u, v)) extraEdges--;
   }
 
   const adjacency = buildAdjacency(edges);

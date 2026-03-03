@@ -8,9 +8,8 @@ interface GraphCanvasProps {
   completed: boolean;
 }
 
-const VERTEX_RADIUS = 24;
-const EDGE_WIDTH = 2;
-const CURVE_BOW = 0.35;
+const VERTEX_RADIUS = 54;
+const EDGE_WIDTH = 6;
 
 export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanvasProps) {
   const { vertices, edges } = graph;
@@ -68,7 +67,7 @@ export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanv
       </div>
       <svg
         className="graph-canvas"
-        viewBox={`0 0 600 400`}
+        viewBox={`0 0 1200 810`}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
@@ -93,49 +92,19 @@ export function GraphCanvas({ graph, path, onVertexClick, completed }: GraphCanv
           const v = vertices.find((v) => v.id === e.v)!;
           const key = edgeKey(e.u, e.v);
           const used = usedEdges.get(key) ?? 0;
-          const total = edgeUsage.get(key) ?? 1;
-          const localIndex = edges
-            .slice(0, i)
-            .filter((prev) => edgeKey(prev.u, prev.v) === key).length;
-          const isOnPath = localIndex < used;
+          const isOnPath = used > 0;
           const x1 = u.x;
           const y1 = u.y;
           const x2 = v.x;
           const y2 = v.y;
-          const dx = x2 - x1;
-          const dy = y2 - y1;
-          const len = Math.hypot(dx, dy) || 1;
-
-          const mx = (x1 + x2) / 2;
-          const my = (y1 + y2) / 2;
-          const perpX = -dy / len;
-          const perpY = dx / len;
-          const bowDist = len * CURVE_BOW;
-
-          let pathD: string;
-          if (total === 1) {
-            pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
-          } else if (total === 2) {
-            const sign = localIndex === 0 ? 1 : -1;
-            const cx = mx + sign * bowDist * perpX;
-            const cy = my + sign * bowDist * perpY;
-            pathD = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-          } else {
-            if (localIndex === 1) {
-              pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
-            } else {
-              const sign = localIndex === 0 ? 1 : -1;
-              const cx = mx + sign * bowDist * perpX;
-              const cy = my + sign * bowDist * perpY;
-              pathD = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-            }
-          }
 
           return (
-            <path
+            <line
               key={`${e.u}-${e.v}-${i}`}
-              d={pathD}
-              fill="none"
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
               className={`edge ${isOnPath ? 'edge-traversed' : ''}`}
               style={{
                 opacity: isOnPath ? 1 : 0.4,
